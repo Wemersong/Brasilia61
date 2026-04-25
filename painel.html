@@ -1,0 +1,303 @@
+<!-- painel.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin - Brasília61</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#f2f2f2;
+display:flex;
+min-height:100vh;
+}
+
+.sidebar{
+width:240px;
+background:#c40000;
+color:#fff;
+padding:25px;
+}
+
+.sidebar h2{
+margin-bottom:25px;
+font-size:24px;
+}
+
+.sidebar a{
+display:block;
+color:#fff;
+text-decoration:none;
+padding:12px;
+margin-bottom:10px;
+background:rgba(255,255,255,0.12);
+border-radius:6px;
+}
+
+.sidebar a:hover{
+background:rgba(255,255,255,0.25);
+}
+
+.content{
+flex:1;
+padding:30px;
+}
+
+.topo{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+}
+
+.topo h1{
+color:#c40000;
+}
+
+.logout{
+background:#111;
+color:#fff;
+padding:10px 18px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.card{
+background:#fff;
+padding:25px;
+border-radius:12px;
+box-shadow:0 0 10px rgba(0,0,0,.08);
+margin-bottom:25px;
+}
+
+input, textarea, select{
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border:1px solid #ccc;
+border-radius:6px;
+font-size:16px;
+}
+
+textarea{
+height:220px;
+resize:none;
+}
+
+button.publicar{
+background:#c40000;
+color:#fff;
+border:none;
+padding:14px;
+width:100%;
+font-size:18px;
+border-radius:6px;
+cursor:pointer;
+}
+
+button.publicar:hover{
+background:#900000;
+}
+
+.post{
+padding:15px;
+border-bottom:1px solid #eee;
+}
+
+.post h3{
+margin-bottom:8px;
+}
+
+.btn-excluir{
+background:#111;
+color:#fff;
+border:none;
+padding:8px 12px;
+border-radius:5px;
+cursor:pointer;
+margin-top:10px;
+}
+
+.msg{
+margin-top:10px;
+font-weight:bold;
+color:green;
+}
+
+@media(max-width:768px){
+body{
+flex-direction:column;
+}
+.sidebar{
+width:100%;
+}
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+<h2>Brasília61</h2>
+<a href="#">Dashboard</a>
+<a href="#">Nova Postagem</a>
+<a href="#">Todas Notícias</a>
+<a href="#">Categorias</a>
+</div>
+
+<div class="content">
+
+<div class="topo">
+<h1>Painel Administrativo</h1>
+<button class="logout" onclick="sair()">Sair</button>
+</div>
+
+<div class="card">
+<h2>📰 Nova Postagem</h2>
+
+<input type="text" id="titulo" placeholder="Título da notícia">
+
+<input type="text" id="imagem" placeholder="URL da imagem">
+
+<select id="categoria">
+<option>Política</option>
+<option>Esportes</option>
+<option>Empregos</option>
+<option>Segurança</option>
+<option>Brasília</option>
+<option>Brasil</option>
+<option>Mundo</option>
+</select>
+
+<textarea id="texto" placeholder="Digite a notícia completa"></textarea>
+
+<button class="publicar" onclick="postar()">PUBLICAR</button>
+
+<div class="msg" id="msg"></div>
+</div>
+
+<div class="card">
+<h2>📋 Últimas Notícias</h2>
+<div id="lista"></div>
+</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getAuth,
+onAuthStateChanged,
+signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs,
+deleteDoc,
+doc,
+query,
+orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyBub7-5jnOmV6qZc5J2yJaMtQPq3t9mnCE",
+authDomain: "brasili61.firebaseapp.com",
+projectId: "brasili61",
+storageBucket: "brasili61.firebasestorage.app",
+messagingSenderId: "1055798468482",
+appId: "1:1055798468482:web:447fda74dae8cb3236799b"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth,(user)=>{
+if(!user){
+window.location.href="login.html";
+}else{
+carregar();
+}
+});
+
+window.sair = function(){
+signOut(auth).then(()=>{
+window.location.href="login.html";
+});
+}
+
+window.postar = async function(){
+
+let titulo = document.getElementById("titulo").value;
+let imagem = document.getElementById("imagem").value;
+let categoria = document.getElementById("categoria").value;
+let texto = document.getElementById("texto").value;
+
+await addDoc(collection(db,"noticias"),{
+titulo,
+imagem,
+categoria,
+texto,
+data:new Date()
+});
+
+document.getElementById("msg").innerHTML="✅ Publicado com sucesso";
+
+document.getElementById("titulo").value="";
+document.getElementById("imagem").value="";
+document.getElementById("texto").value="";
+
+carregar();
+
+}
+
+async function carregar(){
+
+const q = query(collection(db,"noticias"), orderBy("data","desc"));
+const snap = await getDocs(q);
+
+let html = "";
+
+snap.forEach((item)=>{
+
+let n = item.data();
+
+html += `
+<div class="post">
+<h3>${n.titulo}</h3>
+<p>${n.categoria}</p>
+<button class="btn-excluir" onclick="excluir('${item.id}')">Excluir</button>
+</div>
+`;
+
+});
+
+document.getElementById("lista").innerHTML = html;
+
+}
+
+window.excluir = async function(id){
+
+await deleteDoc(doc(db,"noticias",id));
+
+carregar();
+
+}
+
+</script>
+
+</body>
+</html>

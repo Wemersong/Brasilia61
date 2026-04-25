@@ -1,0 +1,112 @@
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Admin - Brasília61</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
+body{
+background:#f1f1f1;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+.box{
+background:#fff;
+padding:35px;
+width:100%;
+max-width:420px;
+border-radius:12px;
+box-shadow:0 0 15px rgba(0,0,0,.1);
+border-top:6px solid #c40000;
+}
+h1{
+text-align:center;
+color:#c40000;
+margin-bottom:25px;
+}
+input{
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border:1px solid #ccc;
+border-radius:6px;
+}
+button{
+width:100%;
+padding:14px;
+border:none;
+background:#c40000;
+color:#fff;
+font-size:18px;
+border-radius:6px;
+cursor:pointer;
+}
+button:hover{background:#900000;}
+#msg{
+margin-top:15px;
+text-align:center;
+color:red;
+font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+<h1>🔐 Brasília61 Admin</h1>
+
+<input type="email" id="email" placeholder="Seu e-mail">
+<input type="password" id="senha" placeholder="Sua senha">
+
+<button onclick="entrar()">ENTRAR</button>
+
+<div id="msg"></div>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getAuth,
+signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyBub7-5jnOmV6qZc5J2yJaMtQPq3t9mnCE",
+authDomain: "brasili61.firebaseapp.com",
+projectId: "brasili61",
+storageBucket: "brasili61.firebasestorage.app",
+messagingSenderId: "1055798468482",
+appId: "1:1055798468482:web:447fda74dae8cb3236799b"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+window.entrar = function(){
+
+let email = document.getElementById("email").value;
+let senha = document.getElementById("senha").value;
+
+signInWithEmailAndPassword(auth,email,senha)
+
+.then(()=>{
+window.location.href="painel.html";
+})
+
+.catch(()=>{
+document.getElementById("msg").innerHTML="Login inválido.";
+});
+
+}
+
+</script>
+
+</body>
+</html>
